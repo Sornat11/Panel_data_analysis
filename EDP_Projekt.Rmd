@@ -217,14 +217,6 @@ form <- as.formula(paste("malzenstwa_wskaznik ~", paste(zmienne, collapse = " + 
 ## Model regresji łącznej
 
 Model regresji łącznej (ang. pooled regression model) jest jednym z podstawowych podejść w analizie danych panelowych, w którym zakłada się, że nie ma różnic między jednostkami (np. krajami, województwami, firmami) ani między okresami czasowymi, tzn. traktuje się dane jako jednorodne. Oznacza to, że wszystkie jednostki i okresy są „połączone” (ang. pooled) w jeden duży zbiór danych, a zmienne objaśniające mają jednorodny wpływ na zmienną objaśnianą. Oznacza to, że nie uwzględnia się specyficznych cech jednostek (np. województw) ani specyficznych trendów czasowych. 
-
-### Pretestowanie
-Przed przystąpieniem do estymacji należy przeprowadzić test Chowa na stabilność parametrów. 
-
-Hipoteza zerowa: parametry strukturalne są stałe w analizowanej próbie, czyli 
-takie same dla wszystkich jednostek i we wszystkich okresach (inaczej: można 
-stosować regresję łączną).
-
 ```{r}
 # Model regresji łącznej
 model_pool <- plm(form, data = panel_data, model = "pooling")
@@ -242,16 +234,64 @@ Oceniając jakość modelu regresji łącznej (Pooling Model), uwzględniamy kil
 2. **Skorygowany współczynnik determinacji (Adjusted R-squared)**:  
    Skorygowany R-squared wynoszący 0.42612 wskazuje na dobrą jakość modelu, uwzględniając liczbę zmiennych objaśniających. Ta wartość sugeruje, że model jest dobrze dopasowany i nie zawiera zbędnych zmiennych, które mogłyby pogorszyć jakość dopasowania.
 
-3. **Test F**:  
-   Test F sprawdza, czy model jako całość jest statystycznie istotny. Uzyskana wartość statystyki F wynosząca 17.866, z p-wartością < 2.22e-16, wskazuje na to, że model jest statystycznie istotny, czyli zmienne objaśniające w sposób istotny wpływają na zmienną zależną.
 
-4. **Wartości p zmiennych objaśniających**:  
+3. **Wartości p zmiennych objaśniających**:  
    - **Zmienne istotne statystycznie**: Zmienne takie jak „rozwody” (p = 0.044), „wynagrodzenie” (p = 0.0004111), „absolwenci_na_10000” (p = 0.0049277) są istotne na poziomie 0.05, co oznacza, że mają znaczący wpływ na zmienną zależną.  
    - **Zmienne nieistotne statystycznie**: Z kolei zmienne takie jak „saldo_migracji” (p = 0.1257), „urodzenia_zywe” (p = 0.235), „kwota_swiad_rodz” (p = 0.4085), oraz „srednia_cena_mieszk” (p = 0.6407) mają p-wartości większe niż 0.05, co sugeruje, że nie mają one istotnego wpływu na zmienną zależną w tym modelu.
 
-5. **Rozkład reszt**:  
+4. **Rozkład reszt**:  
    Rozkład reszt wskazuje, że model nie wykazuje istotnych błędów systematycznych. Minimum reszt wynosi -1.016358, a maksimum 0.769498, co sugeruje, że błędy prognoz są rozłożone równomiernie wokół zera. Dodatkowo, wartość mediany reszt wynosząca 0.038826 świadczy o braku dużych odchyleń od wartości przewidywanych.
 
+### testu F (efekty stałe)
+
+***ipotezy dla testu F (efekty stałe)***
+
+- **Hipoteza zerowa (H₀):**  
+  Efekty stałe (Fixed Effects) nie są istotne, czyli wszystkie efekty indywidualne (αᵢ) są równe. W takim przypadku model **Pooled OLS** jest odpowiedni.
+
+  \[
+  H_0: \alpha_1 = \alpha_2 = \dots = \alpha_N = 0
+  \]
+
+- **Hipoteza alternatywna (H₁):**  
+  Efekty stałe (Fixed Effects) są istotne, czyli przynajmniej jedno z αᵢ jest różne od 0. Oznacza to, że model **Fixed Effects** lepiej opisuje dane.
+
+  \[
+  H_1: \exists \, \alpha_i \neq 0
+  \]
+
+Wyniki testu są zawarte w wynikach kodu powyżej. Wartość p < 0,05 co sugeruje odrzucenie hipotezy zero. Efekty stałe są istotne, co oznacza, że model Fixed Effects lepiej opisuje dane niż model Pooled OLS.
+
+### Test Breuscha-Pagana
+
+Przeprowdzono test Breuscha-Pagana w celu odpowiedzi na pytanie o zasadność stosowania modelu z efektami losowymi
+
+***Hipotezy dla testu Breuscha-Pagana (BP)***
+
+- **Hipoteza zerowa (H₀):**  
+  Wariancja efektów losowych (σ²ᵤ) jest równa 0, co oznacza, że model **Pooled OLS** jest odpowiedni (efekty losowe nie są istotne).
+
+  \[
+  H_0: \sigma^2_u = 0
+  \]
+
+- **Hipoteza alternatywna (H₁):**  
+  Wariancja efektów losowych (σ²ᵤ) jest większa od 0, co oznacza, że model **Random Effects** jest bardziej odpowiedni niż Pooled OLS.
+
+  \[
+  H_1: \sigma^2_u > 0
+  \]
+
+```{r}
+# Test Breuscha-Pagana
+bp_test <- plmtest(model_pool, type = "bp")
+
+# Wyświetlenie wyników testu
+print(bp_test)
+```
+
+Ponieważ p-value (0.002036) jest mniejsze niż typowy poziom istotności (np. 0.05), odrzucamy hipotezę zerową (H₀).
+Model Random Effects jest bardziej odpowiedni niż model Pooled OLS, ponieważ istnieją istotne efekty losowe w danych.
 
 ## Jednokierunkowy model z efektami ustalonymi
 
@@ -323,6 +363,7 @@ Dopasowanie modelu:
 Statystyka chi-kwadrat wynosi 151.765 (p < 2.22e-16), co sugeruje, że model jest istotny statystycznie.
 
 
+
 ## Dwukierunkowy model z efektami losowymi
 
 Dwukierunkowy model z efektami losowymi (ang. Two-Way Random Effects Model) jest rozszerzeniem klasycznego modelu z efektami losowymi, w którym uwzględnia się dwie grupy efektów:
@@ -344,7 +385,7 @@ Wyniki przedstawiają model efektów losowych typu „two-way” (dwukierunkowy)
 
 **Kluczowe wyniki:**
 
-- Efekty losowe (Random Effects):
+Efekty losowe (Random Effects):
 - Efekt indywidualny (individual): 0.019198 (std. dev. = 0.138556), co wskazuje na zmienność wśród jednostek.
 - Efekt czasowy (time): 0.040739 (std. dev. = 0.201840), co sugeruje istotną zmienność w czasie.
 - Efekt idiosynkratyczny (idiosyncratic): 0.009852 (std. dev. = 0.099256), który odzwierciedla losową zmienność niezwiązaną z jednostkami i czasem.
@@ -361,9 +402,31 @@ R-squared = 0.1623, co sugeruje, że model wyjaśnia tylko 16,23% zmienności w 
 Adj. R-squared = 0.1237, co uwzględnia liczbę zmiennych objaśniających.
 Statystyka Chi-squared = 29.45 z p-wartością 0.00011974 wskazuje na istotność modelu.
 
-# Wybór modelu
+## Wybór modelu
 
-## Jednokierunkowy czy dwukierunkowy model z efektami utalonymi?
+Wykorzystując test BP i test F ustalono, że modele FE i RE są lepszymi rozwiązaniami od regresji łącznej. Wartość miar oddających jakość modelów był zdecydowanie lepszy w przypadku zmiennych jednokierunkowych w związku z czym zdecydowano sie na ich użycie. W celu wyłonienia najlepego modelu przeprowadzono tet Hausmana.
 
-## Jednokierunkowy czy dwukierunkowy model z efektami losowymi
+***Hipotezy dla testu Hausmana***
 
+- **Hipoteza zerowa (H₀):**  
+  Efekty losowe (Random Effects) są nieskorelowane z regresorami, co oznacza, że model **Random Effects** jest odpowiedni.
+
+  \[
+  H_0: \text{Efekty losowe są nieskorelowane zmienna objaśniająca}
+  \]
+
+- **Hipoteza alternatywna (H₁):**  
+  Efekty losowe (Random Effects) są skorelowane z regresorami, co oznacza, że model **Fixed Effects** jest bardziej odpowiedni.
+
+  \[
+  H_1: \text{Efekty losowe są skorelowane zmienna objaśniająca}
+  \]
+  
+```{r}
+# Wykonaj test Hausmana
+hausman_test <- phtest(model_fe, model_re)
+
+hausman_test
+```
+  
+Ponieważ wartość p jest bardzo mała (1.128e-05), odrzucono hipotezę zerową, która mówi, że modele są zgodne. To sugeruje, że model efektów stałych (FE) jest bardziej odpowiedni niż model efektów losowych (RE) w tym przypadku.
