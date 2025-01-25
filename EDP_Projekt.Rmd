@@ -26,7 +26,7 @@ Celem niniejszej pracy jest przeprowadzenie analizy danych panelowych w celu osz
 
 ## Zmienne użyte w pracy
 
-Badanie dotyczy 16 województw Polski w okresie od 2018 roku do 2022 roku. Oznacza to, że wykorzystane dane panelowe będą postaci 16 jednostek przekroju w 5 okresach. Zbiór danych został utworzony na podstawie danych zawartych w Banku Danych Lokalnych Głównego Urzędu Statystycznego (BDL GUS). Początkowo wstępny zbiór danych zawiera 13 zmiennych objaśniających oraz 1 zmienną objaśnianą. Poniżej opisano zbiór danych:
+Badanie dotyczy 16 województw Polski w okresie od 2013 roku do 2022 roku. Oznacza to, że wykorzystane dane panelowe będą postaci 16 jednostek przekroju w 5 okresach. Zbiór danych został utworzony na podstawie danych zawartych w Banku Danych Lokalnych Głównego Urzędu Statystycznego (BDL GUS). Początkowo wstępny zbiór danych zawiera 13 zmiennych objaśniających oraz 1 zmienną objaśnianą. Poniżej opisano zbiór danych:
 
 ### Zmienna endogeniczna (objaśniana):
 - **malzenstwa_wskaznik** –  Stosunek liczby małżeństw zawartych w danym roku do 10 tys. ludności
@@ -430,3 +430,4 @@ hausman_test
 ```
   
 Ponieważ wartość p jest bardzo mała (1.128e-05), odrzucono hipotezę zerową, która mówi, że modele są zgodne. To sugeruje, że model efektów stałych (FE) jest bardziej odpowiedni niż model efektów losowych (RE) w tym przypadku.
+
