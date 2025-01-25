@@ -210,7 +210,38 @@ zmienne <- c("saldo_migracji", "przedszkole", "wynagrodzenie",
 form <- as.formula(paste("malzenstwa_wskaznik ~", paste(zmienne, collapse = " + ")))
 ```
 
+## Model regresji łącznej
+
+Model regresji łącznej (ang. pooled regression model) jest jednym z podstawowych podejść w analizie danych panelowych, w którym zakłada się, że nie ma różnic między jednostkami (np. krajami, województwami, firmami) ani między okresami czasowymi, tzn. traktuje się dane jako jednorodne. Oznacza to, że wszystkie jednostki i okresy są „połączone” (ang. pooled) w jeden duży zbiór danych, a zmienne objaśniające mają jednorodny wpływ na zmienną objaśnianą. Oznacza to, że nie uwzględnia się specyficznych cech jednostek (np. województw) ani specyficznych trendów czasowych.
+
+```{r}
+# Model regresji łącznej
+model_pool <- plm(form, data = panel_data, model = "pooling")
+
+# Podsumowanie wyników
+summary(model_pool)
+```
+
+Oceniając jakość modelu regresji łącznej (Pooling Model), uwzględniamy kilka kluczowych wskaźników, które pozwalają ocenić, jak dobrze model tłumaczy zmienność zmiennej objaśnianej oraz jak istotne są poszczególne zmienne objaśniające.
+
+1. **Współczynnik determinacji (R-squared)**:
+Wartość R-squared wynosząca 0.71965 sugeruje, że model wyjaśnia około 72% zmienności zmiennej objaśnianej, czyli wskaźnika małżeństw. Jest to stosunkowo dobra wartość, co wskazuje na to, że model dobrze dopasowuje się do danych. Oznacza to, że zmienne objaśniające w modelu mają znaczący wpływ na zmienną zależną.
+
+2. **Skorygowany współczynnik determinacji (Adjusted R-squared)**:
+Skorygowany R-squared, który wynosi 0.68361, również wskazuje na dobrą jakość modelu, uwzględniając liczbę zmiennych objaśniających. Skorygowany wskaźnik bierze pod uwagę liczbę zmiennych w modelu, karząc za dodanie zmiennych, które nie wnoszą istotnej wartości. Wartość ta sugeruje, że model jest dobrze dopasowany, a dodanie nowych zmiennych objaśniających nie pogorszyło jakości modelu.
+
+3. **Test F**:
+Test F sprawdza, czy model jako całość jest istotny. Uzyskana wartość statystyki F wynosząca 19.9654, z p-wartością 4.1568e-16, wskazuje na to, że model jest statystycznie istotny, czyli zmienne objaśniające w sposób istotny wpływają na zmienną zależną.
+
+4. **Wartości p zmiennych objaśniających**:
+Analizując wartości p dla poszczególnych zmiennych objaśniających, możemy stwierdzić, że zmienne takie jak „przedszkole”, „mieszkania_oddane”, „kwota_swiad_rodz”, „absolwenci_na_10000”, „urodzenia_zywe”, „bezrobocie” oraz „rozwody” mają wartość p mniejszą niż 0.05, co oznacza, że są one statystycznie istotne. Z drugiej strony, zmienne takie jak „saldo_migracji” oraz „wynagrodzenie” nie mają istotnego wpływu na zmienną zależną, ponieważ ich wartości p są większe niż 0.05.
+
+5. **Rozkład reszt**:
+Rozkład reszt wskazuje, że model nie wykazuje istotnych błędów systematycznych. Minimum reszt wynosi -0.6029940, a maksimum 0.4701504, co sugeruje, że błędy prognoz są rozłożone równomiernie wokół zera. Dodatkowo, wartość mediany reszt wynosząca 0.0085377 świadczy o braku dużych odchyleń od wartości przewidywanych.
+
 ## Model z efektami ustalonymi
+
+Model regresji z efektami ustalonymi (ang. fixed effects model) zakłada się, że różnice pomiędzy jednostkami (np. krajami, województwami, firmami) są istotne i należy je uwzględnić w modelu. Model ten pozwala na kontrolowanie indywidualnych cech jednostek, które nie zmieniają się w czasie, a które mogą wpływać na zmienną objaśnianą. Dzięki temu, efekt ustalony pozwala na oddzielenie wpływu zmiennych objaśniających od wpływu specyficznych cech jednostek, które mogą stanowić istotne źródło zmienności.
 
 ```{r}
 # Model efektów ustalonych
@@ -220,6 +251,18 @@ model_fe <- plm(form, data = panel_data, model = "within")
 summary(model_fe)
 ```
 
+## Model z efektami losowymi
 
+Model regresji z efektami losowymi (ang. random effects model) jest kolejnym podejściem w analizie danych panelowych, które zakłada, że różnice między jednostkami  są losowe i niezależne od zmiennych objaśniających. Oznacza to, że różnice między jednostkami traktowane są jako część składnika losowego, który jest zdefiniowany przez rozkład probabilistyczny.
 
+W przeciwieństwie do modelu z efektami ustalonymi, model z efektami losowymi nie zakłada, że różnice między jednostkami są związane z ich indywidualnymi cechami, ale raczej traktuje je jako losowy składnik w procesie generowania danych. W związku z tym model z efektami losowymi jest bardziej odpowiedni w przypadku, gdy jednostki są traktowane jako losowe próby z populacji, a efekty jednostkowe nie są skorelowane z zmiennymi objaśniającymi.
+
+```{r}
+re_model <- plm(form, data = panel_data, model = "random")
+summary(re_model)
+```
+
+## Model jednokierunkowy
+
+## Model dwukierunkowy
 
