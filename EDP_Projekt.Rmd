@@ -1,0 +1,225 @@
+---
+title: "Zastosowanie metod ekonometrycznych na danych panelowych"
+author: "Jakub Sornat, Maciej Tajs"
+date: "2025-01-23"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
+    code_folding: hide
+    warning: false
+    message: false
+---
+
+# Wstęp
+
+Celem niniejszej pracy jest przeprowadzenie analizy danych panelowych w celu oszacowania zależności między zmiennymi objaśniającymi a zmienną objaśnianą, z uwzględnieniem efektów czasowych oraz indywidualnych poprzez estymację modeli ekonometrycznych oraz ich interpretację. Praca będzie składała się z następujących elementów:
+
+1. **Opis danych**: W pierwszej części pracy przedstawione zostaną dane użyte w analizie, w tym zmienne, ich jednostki miary, oraz zakres czasowy. Zostanie również wskazana zmienna objaśniana oraz omówienie oczekiwanych zależności między zmiennymi.
+
+2. **Estymacja modeli ekonometrycznych**: W tej części pracy zostaną oszacowane modele ekonometryczne na podstawie danych panelowych, uwzględniając zarówno efekty czasowe, jak i indywidualne. Zostaną porównane różne modele (np. efekty stałe vs efekty losowe), a wybór najlepszego modelu będzie uzasadniony za pomocą odpowiednich testów i procedur estymacyjnych.
+
+3. **Diagnostyka modelu**: Zostaną przeprowadzone testy diagnostyczne w celu oceny jakości oszacowanych modeli, takie jak testy heteroskedastyczności, autokorelacji czy endogeniczności zmiennych objaśniających. W przypadku wystąpienia problemów diagnostycznych, podjęte zostaną próby ich rozwiązania lub omówienie wpływu tych problemów na interpretację wyników.
+
+4. **Interpretacja wyników**: W tej sekcji przedstawione zostaną wyniki oszacowanych modeli oraz ich interpretacja. Zostanie szczegółowo omówione, jak poszczególne zmienne objaśniające wpływają na zmienną objaśnianą, oraz jakie są efekty czasowe i indywidualne w badanym modelu.
+
+## Zmienne użyte w pracy
+
+Badanie dotyczy 16 województw Polski w okresie od 2018 roku do 2022 roku. Oznacza to, że wykorzystane dane panelowe będą postaci 16 jednostek przekroju w 5 okresach. Zbiór danych został utworzony na podstawie danych zawartych w Banku Danych Lokalnych Głównego Urzędu Statystycznego (BDL GUS). Początkowo wstępny zbiór danych zawiera 13 zmiennych objaśniających oraz 1 zmienną objaśnianą. Poniżej opisano zbiór danych:
+
+### Zmienna endogeniczna (objaśniana):
+- **malzenstwa_wskaznik** –  Stosunek liczby małżeństw zawartych w danym roku do  średniej liczby ludności w tym okresie – wyrażony w ‰ (tj. na 1000 ludności).
+
+### Zmienne egzogeniczne (objaśniające):
+- **saldo_migracji** – wskaźnik salda migracji w danym województwie na 10 tys. ludności
+- **zywnosc** – wskaźnik cen dla żywności i napoi bezalkoholowych
+- **rozwody** – wskaźnik rozwodów (nie wliczając separacji) ogółem na 10 tys. ludności
+- **urodzenia_zywe** – wskaźnik urodzeń żywych na 1000 ludności
+- **bezrobocie** – stopa bezrobocia rejestrowanego
+- **cena_metr_kw** – kwota za 1 m² mieszkania
+- **przedszkole** – liczba przedszkoli na 10 tys. ludności
+- **wynagrodzenie** – przeciętne miesięczne wynagrodzenie brutto
+- **mieszkania_oddane** – mieszkania oddane do użytku
+- **kwota_swiad_rodz** – kwoty świadczeń rodzinnych wypłaconych w roku przypadająca na 1000 mieszkańców
+- **urodzenia_pozamalzenskie** – wskaźnik urodzeń żywych pozamałżeńskich na 1000 ludności
+- **absolwenci_na_10000** – liczba absolwentów, którzy ukończyli studia w danym roku w przeliczeniu na 10 000 ludności
+- **srednia_cena_mieszk** – średnia cena mieszkań w danym roku w danym województwie
+
+# Analiza danych
+
+## Import niezbędnych bibliotek
+W celu przeprowadzenia analizy danych oraz oszacowania modeli ekonometrycznych, niezbędne okazały się biblioteki w języku R, które zapewniają dostęp do funkcji ułatwiających przetwarzanie danych, estymację modeli oraz wizualizację wyników.
+
+```{r message=FALSE, warning=FALSE}
+library(readxl)
+library(psych)
+library(corrplot)
+library(dplyr)
+library(DT)
+library(ggplot2)
+library(reshape2)
+library(tidyr)
+library(gridExtra)
+library(plm)
+```
+
+## Budowa przydatnych funckji
+
+Do badania przydate okazały się również funckję które na wstępnym etapie opracowano samodzielenie.
+
+```{r}
+coefficient_of_variation <- function(x) {
+  if (mean(x, na.rm = TRUE) == 0) {
+    return("NA%") # Unikamy dzielenia przez zero
+  }
+  cv <- (sd(x, na.rm = TRUE) / mean(x, na.rm = TRUE)) * 100
+  cv_rounded <- round(cv, 2) # Zaokrąglanie do dwóch miejsc
+  return(cv_rounded) # Dodanie znaku %
+}
+```
+
+## Prezentacja danych
+
+Tabela poniżej przedstawia dane użete w badaniu.
+
+```{r}
+data <- as.data.frame(read_excel("dane.xlsx"))
+
+# Wyświetlenie tabeli interaktywnej z przewijaniem
+datatable(data, options = list(pageLength = 10, scrollX = TRUE, scrollY = 400))
+```
+
+## Statystyki opisowe
+
+Zdecydowano się na oszacowanie statystyk opisowych, które okazały się pomocne we wstępnej analizie danych. Miary takie jak **liczba obserwacju**, **średnia**, **mediana**, **odchylenie standardowe**, **minimum**, **maksimum**, **pierwszy**, **trzeci kwartyl**, **wartość skośności** oraz **wartość kurtozy** mogą wnieść wiele cennych informacji na temat rozkładu i charakterystyki poszczególnych zmiennych.
+
+```{r}
+numeric_data <- data %>%
+  select(-rok, -wojewodztwo, -woj_nr)
+
+# Wyświetlenie statystyk opisowych tylko dla danych numerycznych
+summary_stats <- describe(numeric_data)
+
+# Zaokrąglanie wyników do 2 miejsc po przecinku
+summary_stats_rounded <- summary_stats %>%
+  mutate(across(where(is.numeric), ~ round(.x, 2)))
+
+# Wyświetlenie tabeli w formie interaktywnej
+datatable(summary_stats_rounded, options = list(pageLength = 10, scrollX = TRUE, scrollY = 400))
+
+```
+
+Na podstawie statystyk opisowych możemy wyciągnąć następujące wnioski i obserwacje dotyczące danych:
+
+- **Wartość średnia cena_metr_kw wynosi 5240.15, ale odchylenie standardowe (1,418.48) jest dość wysokie**. Oznacza to, że ceny mieszkań różnią się znacznie między województwami, co może wskazywać na duże różnice w poziomie rozwoju rynku nieruchomości w różnych częściach Polski. Najwyższe ceny mieszkań występują w województwach bardziej rozwiniętych gospodarczo i z większymi aglomeracjami miejskimi. Wysokie ceny nieruchomości mogą mieć wpływ na decyzje o zawarciu małżeństwa, zwłaszcza w kontekście stabilności finansowej młodych par. W regionach, gdzie ceny mieszkań są wysokie, pary mogą odwlekać decyzję o zawarciu małżeństwa lub zakładać mniejsze rodziny, ponieważ mogą zmagać się z problemami finansowymi związanymi z kosztami życia.
+
+- **Szeroki zakres wartości dla zmiennej saldo_migracji:** Zmienna ta wykazuje dużą zmienność, z wartością minimalną wynoszącą -25.60 i maksymalną 24.16. Z tego wynika, że w niektórych województwach mamy dużą migrację negatywną (więcej osób wyjeżdża niż przyjeżdża), podczas gdy inne przyciągają więcej osób. Może to być związane z preferencjami migracyjnymi, poziomem życia, dostępnością pracy oraz atrakcyjnością danego województwa.Województwa o wysokim poziomie migracji mogą charakteryzować się większą liczbą małżeństw, ponieważ napływ nowych mieszkańców może prowadzić do wzrostu liczby par. Z drugiej strony, w województwach z negatywnym saldem migracji może dojść do spadku liczby zawieranych małżeństw, gdyż emigrujące osoby mogą nie zakładać rodzin w regionach, z których wyjeżdżają.
+
+- **Wysokie wartości dla zmiennej urodzenia_pozamalzenskie:** Zmienna urodzenia_pozamalzenskie wskazuje na wyraźną tendencję do rosnącej liczby urodzeń pozamałżeńskich. Średnia wartość wynosi 24.70, a rozrzut danych (od 12.49 do 40.13) sugeruje, że różnice te mogą być związane z czynnikami kulturowymi lub społecznymi w poszczególnych województwach.  W niektórych regionach wyższa liczba urodzeń pozamałżeńskich może świadczyć o mniejszym nacisku na tradycyjne wartości, w tym na zawieranie małżeństw. Może to również oznaczać, że pary w tych województwach bardziej koncentrują się na innych aspektach życia rodzinnego, a małżeństwo nie jest już traktowane jako warunek do posiadania dzieci.
+
+- **Znaczące różnice w wynagrodzeniach:** Wartość wynagrodzenie dla różnych województw waha się od 4,028.33 do 7,913.14. Choć średnia wynosi 5,286.05, to duża zmienność (odchylenie standardowe 803.17) wskazuje na nierówności w zarobkach w różnych regionach. To może być związane z rozwojem rynku pracy, poziomem wykształcenia, rodzajem przemysłu czy dostępem do większych ośrodków miejskich. W województwach z wyższymi wynagrodzeniami małżeństwa mogą być bardziej popularne, ponieważ pary mogą czuć się bardziej stabilne finansowo, co sprzyja zawieraniu małżeństw. Natomiast w regionach o niższych wynagrodzeniach, młodsze pokolenia mogą wstrzymywać decyzję o małżeństwie z powodu braku stabilności finansowej.
+
+- **Różnice w liczbie przedszkoli:** Zmienna przedszkole pokazuje, że w różnych województwach liczba przedszkoli na 10 tys. ludności waha się między 0.11 a 0.88. Możemy przypuszczać, że województwa z wyższą liczbą przedszkoli są bardziej rozwinięte pod względem infrastruktury edukacyjnej, co może wpływać na dostępność usług opieki nad dziećmi i jakość życia. Możemy przypuszczać, że województwa z wyższą liczbą przedszkoli są bardziej rozwinięte pod względem infrastruktury edukacyjnej, co może wpływać na dostępność usług opieki nad dziećmi i jakość życia. Lepsza infrastruktura edukacyjna, w tym dostępność przedszkoli, może pozytywnie wpływać na decyzje o zakładaniu rodzin, w tym o zawieraniu małżeństw, ponieważ pary mogą czuć się bardziej komfortowo w regionach, gdzie istnieje łatwiejszy dostęp do takich usług.
+
+
+## Brakujące dane w zbiorze
+
+Zbadano również wsytępowanie braków danych w zbiorze.
+
+```{r}
+# Liczba brakujących wartości w każdej kolumnie
+missing_per_column <- colSums(is.na(data))
+print(missing_per_column)
+```
+
+Wyniki pokazuja, że zestaw nie zawiera braków danych.
+
+
+## Współczynnik zmienności
+
+Obliczono współczynnik zmienności. Zdecycowane, że zmienne któtych wartość będzie niższa od 10 % będą wykluczone z badania z podobu zbyt niskiej wartości infarmacyjnej.
+
+```{r}
+# Obliczanie współczynnika zmienności dla każdej kolumny numerycznej
+cv_per_column <- numeric_data %>%
+  summarise(across(everything(), ~ coefficient_of_variation(.x))) %>%
+  pivot_longer(cols = everything(), names_to = "Variable", values_to = "CV")
+
+# Wyświetlenie wyników
+print(cv_per_column)
+```
+
+Wartość współczynnika dla zmiennej zywnosc wynosi 4,51. Jest to niewystaraczający wynik dlatego zdecydowano się wykluczyć ją z badania.
+
+```{r}
+numeric_data <- numeric_data %>% select(-zywnosc)
+```
+
+## Macierz korelacji pomiędzy zmiennymi
+
+Poniższy wykres przedstawia macierz korelacji pomiędzy zmiennymi.
+
+```{r}
+
+# Obliczanie macierzy korelacji
+cor_matrix <- cor(numeric_data, use = "complete.obs")
+
+# Przekształcanie macierzy korelacji na format długowy (melt)
+cor_matrix_melted <- melt(cor_matrix)
+
+# Wizualizacja z ggplot2, zmniejszenie rozmiaru czcionki
+ggplot(cor_matrix_melted, aes(Var1, Var2, fill = value)) +
+  geom_tile() +  # Tworzenie kafelków
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0) +  # Kolory
+  geom_text(aes(label = round(value, 2)), color = "black", size = 3, fontface = "bold") +  # Zmniejszenie czcionki
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +  # Obrót etykiet osi X
+  labs(title = "Macierz Korelacji", fill = "Korelacja")  # Dodanie tytułu i legendy
+```
+
+Ze względu na bardzo niską korelację ze zmienną objaśnianą (malzenstwa_wskaznik) zdecydowano się na usunięcie dwóch zmiennych: cena_metr_kw i srednia_cena_mieszk. Ponadto zmienne te wykazywały bardzo wysoką korelację między sobą, co również nie było pożądane. Kolejną zmienną, którą zdecydowano się nie brać pod uwagę w trakcie analizy, były urodzenia_pozamałżeńskie – także one wykazywały niską korelację ze zmienną objaśnianą.
+
+```{r}
+numeric_data <- numeric_data %>% 
+  select(-cena_metr_kw, -srednia_cena_mieszk, -urodzenia_pozamalzenskie)
+
+data <- data %>%
+  select(-zywnosc, -cena_metr_kw, -srednia_cena_mieszk, -urodzenia_pozamalzenskie)
+```
+
+
+# Estymacja modeli i wybór najlepszej postaci
+
+Do dalszej analizy niezbędnym jest przekształcenie danych do formatu panelowego.
+
+```{r}
+panel_data <- pdata.frame(data, index = c("wojewodztwo", "rok"))
+
+```
+
+Następnie definiujemy zmienne egzogeniczne naszego modelu
+
+```{r}
+# Zmienne objaśniające
+zmienne <- c("saldo_migracji", "przedszkole", "wynagrodzenie", 
+             "mieszkania_oddane", "kwota_swiad_rodz", "absolwenci_na_10000", 
+             "urodzenia_zywe", "bezrobocie", "rozwody")
+
+# Formuła modelu
+form <- as.formula(paste("malzenstwa_wskaznik ~", paste(zmienne, collapse = " + ")))
+```
+
+## Model z efektami ustalonymi
+
+```{r}
+# Model efektów ustalonych
+model_fe <- plm(form, data = panel_data, model = "within")
+
+# Podsumowanie wyników
+summary(model_fe)
+```
+
+
+
+
