@@ -29,21 +29,21 @@ Celem niniejszej pracy jest przeprowadzenie analizy danych panelowych w celu osz
 Badanie dotyczy 16 województw Polski w okresie od 2018 roku do 2022 roku. Oznacza to, że wykorzystane dane panelowe będą postaci 16 jednostek przekroju w 5 okresach. Zbiór danych został utworzony na podstawie danych zawartych w Banku Danych Lokalnych Głównego Urzędu Statystycznego (BDL GUS). Początkowo wstępny zbiór danych zawiera 13 zmiennych objaśniających oraz 1 zmienną objaśnianą. Poniżej opisano zbiór danych:
 
 ### Zmienna endogeniczna (objaśniana):
-- **malzenstwa_wskaznik** –  Stosunek liczby małżeństw zawartych w danym roku do  średniej liczby ludności w tym okresie – wyrażony w ‰ (tj. na 1000 ludności).
+- **malzenstwa_wskaznik** –  Stosunek liczby małżeństw zawartych w danym roku do 10 tys. ludności
 
 ### Zmienne egzogeniczne (objaśniające):
 - **saldo_migracji** – wskaźnik salda migracji w danym województwie na 10 tys. ludności
 - **zywnosc** – wskaźnik cen dla żywności i napoi bezalkoholowych
 - **rozwody** – wskaźnik rozwodów (nie wliczając separacji) ogółem na 10 tys. ludności
-- **urodzenia_zywe** – wskaźnik urodzeń żywych na 1000 ludności
-- **bezrobocie** – stopa bezrobocia rejestrowanego
+- **urodzenia_zywe** – wskaźnik urodzeń żywych na 10 tys. ludności
+- **bezrobocie** – stopa bezrobocia
 - **cena_metr_kw** – kwota za 1 m² mieszkania
 - **przedszkole** – liczba przedszkoli na 10 tys. ludności
 - **wynagrodzenie** – przeciętne miesięczne wynagrodzenie brutto
-- **mieszkania_oddane** – mieszkania oddane do użytku
+- **mieszkania_oddane** – mieszkania oddane do użytkowania na 1000 ludności
 - **kwota_swiad_rodz** – kwoty świadczeń rodzinnych wypłaconych w roku przypadająca na 1000 mieszkańców
 - **urodzenia_pozamalzenskie** – wskaźnik urodzeń żywych pozamałżeńskich na 1000 ludności
-- **absolwenci_na_10000** – liczba absolwentów, którzy ukończyli studia w danym roku w przeliczeniu na 10 000 ludności
+- **absolwenci_na_10000** – liczba absolwentów, którzy ukończyli studia w danym roku w przeliczeniu na 10 tys. ludności
 - **srednia_cena_mieszk** – średnia cena mieszkań w danym roku w danym województwie
 
 # Analiza danych
@@ -84,7 +84,7 @@ coefficient_of_variation <- function(x) {
 Tabela poniżej przedstawia dane użete w badaniu.
 
 ```{r}
-data <- as.data.frame(read_excel("dane.xlsx"))
+data <- as.data.frame(read_excel("Projekt_EDP_dane.xlsx"))
 
 # Wyświetlenie tabeli interaktywnej z przewijaniem
 datatable(data, options = list(pageLength = 10, scrollX = TRUE, scrollY = 400))
@@ -112,15 +112,19 @@ datatable(summary_stats_rounded, options = list(pageLength = 10, scrollX = TRUE,
 
 Na podstawie statystyk opisowych możemy wyciągnąć następujące wnioski i obserwacje dotyczące danych:
 
-- **Wartość średnia cena_metr_kw wynosi 5240.15, ale odchylenie standardowe (1,418.48) jest dość wysokie**. Oznacza to, że ceny mieszkań różnią się znacznie między województwami, co może wskazywać na duże różnice w poziomie rozwoju rynku nieruchomości w różnych częściach Polski. Najwyższe ceny mieszkań występują w województwach bardziej rozwiniętych gospodarczo i z większymi aglomeracjami miejskimi. Wysokie ceny nieruchomości mogą mieć wpływ na decyzje o zawarciu małżeństwa, zwłaszcza w kontekście stabilności finansowej młodych par. W regionach, gdzie ceny mieszkań są wysokie, pary mogą odwlekać decyzję o zawarciu małżeństwa lub zakładać mniejsze rodziny, ponieważ mogą zmagać się z problemami finansowymi związanymi z kosztami życia.
+- **Wartość średnia zmiennej `malzenstwa_wskaznik` wynosi 4.63, ale odchylenie standardowe (0.47) jest stosunkowo niewielkie**. Oznacza to, że wskaźnik małżeństw w różnych województwach jest dość stabilny, z niewielkimi różnicami w porównaniu do średniej. Regiony o wyższych wskaźnikach małżeństw mogą cechować się tradycyjnymi wartościami rodzinnymi i społecznymi, podczas gdy w województwach z niższymi wartościami tego wskaźnika, może występować większa otwartość na inne formy życia rodzinnego lub większe trudności związane z decyzją o zawarciu małżeństwa, np. z powodu problemów finansowych.
 
-- **Szeroki zakres wartości dla zmiennej saldo_migracji:** Zmienna ta wykazuje dużą zmienność, z wartością minimalną wynoszącą -25.60 i maksymalną 24.16. Z tego wynika, że w niektórych województwach mamy dużą migrację negatywną (więcej osób wyjeżdża niż przyjeżdża), podczas gdy inne przyciągają więcej osób. Może to być związane z preferencjami migracyjnymi, poziomem życia, dostępnością pracy oraz atrakcyjnością danego województwa.Województwa o wysokim poziomie migracji mogą charakteryzować się większą liczbą małżeństw, ponieważ napływ nowych mieszkańców może prowadzić do wzrostu liczby par. Z drugiej strony, w województwach z negatywnym saldem migracji może dojść do spadku liczby zawieranych małżeństw, gdyż emigrujące osoby mogą nie zakładać rodzin w regionach, z których wyjeżdżają.
+- **Duża zmienność w zmiennej `saldo_migracji`:** Zmienna ta pokazuje dużą różnicę między wartościami minimalnymi (-33.57) i maksymalnymi (30.91). Regiony o wysokim saldzie migracji mogą charakteryzować się napływem nowych mieszkańców, co może wpływać na większą liczbę małżeństw. Z kolei w województwach z negatywnym saldem migracji, emigracja może prowadzić do spadku liczby zawieranych małżeństw, gdyż osoby wyjeżdżające mogą nie zakładać rodzin w miejscu, z którego pochodzą.
 
-- **Wysokie wartości dla zmiennej urodzenia_pozamalzenskie:** Zmienna urodzenia_pozamalzenskie wskazuje na wyraźną tendencję do rosnącej liczby urodzeń pozamałżeńskich. Średnia wartość wynosi 24.70, a rozrzut danych (od 12.49 do 40.13) sugeruje, że różnice te mogą być związane z czynnikami kulturowymi lub społecznymi w poszczególnych województwach.  W niektórych regionach wyższa liczba urodzeń pozamałżeńskich może świadczyć o mniejszym nacisku na tradycyjne wartości, w tym na zawieranie małżeństw. Może to również oznaczać, że pary w tych województwach bardziej koncentrują się na innych aspektach życia rodzinnego, a małżeństwo nie jest już traktowane jako warunek do posiadania dzieci.
+- **Zmienna `zywnosc` wskazuje na stabilność w poziomie wydatków na żywność:** Średnia wynosi 26.13, a odchylenie standardowe 2.4, co sugeruje, że wydatki na żywność są stosunkowo jednorodne w różnych województwach. Wysokie wartości tej zmiennej mogą wskazywać na regiony, w których standard życia jest wyższy, a rodziny mogą być bardziej stabilne finansowo, co sprzyja decyzjom o zawieraniu małżeństw. W regionach, w których wydatki na żywność są niższe, mogłyby występować trudności finansowe, które wpływają na decyzję o małżeństwie.
 
-- **Znaczące różnice w wynagrodzeniach:** Wartość wynagrodzenie dla różnych województw waha się od 4,028.33 do 7,913.14. Choć średnia wynosi 5,286.05, to duża zmienność (odchylenie standardowe 803.17) wskazuje na nierówności w zarobkach w różnych regionach. To może być związane z rozwojem rynku pracy, poziomem wykształcenia, rodzajem przemysłu czy dostępem do większych ośrodków miejskich. W województwach z wyższymi wynagrodzeniami małżeństwa mogą być bardziej popularne, ponieważ pary mogą czuć się bardziej stabilne finansowo, co sprzyja zawieraniu małżeństw. Natomiast w regionach o niższych wynagrodzeniach, młodsze pokolenia mogą wstrzymywać decyzję o małżeństwie z powodu braku stabilności finansowej.
+- **Wysoka zmienność w liczbie `rozwody`:** Zmienna ta ma średnią wartość 16.07 i odchylenie standardowe 2.63, co sugeruje, że liczba rozwodów w różnych województwach jest zróżnicowana. Regiony z wyższą liczbą rozwodów mogą wskazywać na mniejsze stabilności małżeństw lub na społeczne i ekonomiczne czynniki, które wpływają na większe trudności w utrzymaniu małżeństw. Może to mieć związek z warunkami finansowymi, w których pary mogą decydować się na rozstanie.
 
-- **Różnice w liczbie przedszkoli:** Zmienna przedszkole pokazuje, że w różnych województwach liczba przedszkoli na 10 tys. ludności waha się między 0.11 a 0.88. Możemy przypuszczać, że województwa z wyższą liczbą przedszkoli są bardziej rozwinięte pod względem infrastruktury edukacyjnej, co może wpływać na dostępność usług opieki nad dziećmi i jakość życia. Możemy przypuszczać, że województwa z wyższą liczbą przedszkoli są bardziej rozwinięte pod względem infrastruktury edukacyjnej, co może wpływać na dostępność usług opieki nad dziećmi i jakość życia. Lepsza infrastruktura edukacyjna, w tym dostępność przedszkoli, może pozytywnie wpływać na decyzje o zakładaniu rodzin, w tym o zawieraniu małżeństw, ponieważ pary mogą czuć się bardziej komfortowo w regionach, gdzie istnieje łatwiejszy dostęp do takich usług.
+- **Różnice w wynagrodzeniach w województwach:** Zmienna `wynagrodzenie` wskazuje na duże zróżnicowanie w zarobkach, od 2836 do 8194 zł, z średnią wynoszącą 4393.97 zł i odchyleniem standardowym 1039.67. Wysokie wynagrodzenia mogą wpływać na większą stabilność finansową par, co może prowadzić do wyższej liczby zawieranych małżeństw w województwach o wyższych dochodach. Natomiast w regionach z niższymi wynagrodzeniami, młodsze pokolenia mogą wstrzymywać decyzję o małżeństwie z powodu braku poczucia stabilności finansowej.
+
+- **Zmienność w liczbie `przedszkole`:** Zmienna ta wskazuje, że w województwach liczba przedszkoli na 10 tys. ludności waha się od 1.17 do 6.84, co może świadczyć o zróżnicowanym dostępie do edukacji przedszkolnej. Regiony z wyższą liczbą przedszkoli mogą oferować lepsze warunki do wychowywania dzieci, co może skłaniać pary do zakładania rodzin i zawierania małżeństw. Z kolei województwa z mniejszą liczbą przedszkoli mogą mieć ograniczony dostęp do usług opiekuńczych, co może wpływać na decyzje o posiadaniu dzieci i zawieraniu małżeństw.
+
+
 
 
 ## Brakujące dane w zbiorze
@@ -150,7 +154,7 @@ cv_per_column <- numeric_data %>%
 print(cv_per_column)
 ```
 
-Wartość współczynnika dla zmiennej zywnosc wynosi 4,51. Jest to niewystaraczający wynik dlatego zdecydowano się wykluczyć ją z badania.
+Wartość współczynnika dla zmiennej zywnosc wynosi 9.17%. Jest to niewystaraczający wynik dlatego zdecydowano się wykluczyć ją z badania. Ta sama sytuacja będzie miała miejsce w przypadku zmiennej malzenstwa_wskaznik
 
 ```{r}
 numeric_data <- numeric_data %>% select(-zywnosc)
@@ -178,14 +182,14 @@ ggplot(cor_matrix_melted, aes(Var1, Var2, fill = value)) +
   labs(title = "Macierz Korelacji", fill = "Korelacja")  # Dodanie tytułu i legendy
 ```
 
-Ze względu na bardzo niską korelację ze zmienną objaśnianą (malzenstwa_wskaznik) zdecydowano się na usunięcie dwóch zmiennych: cena_metr_kw i srednia_cena_mieszk. Ponadto zmienne te wykazywały bardzo wysoką korelację między sobą, co również nie było pożądane. Kolejną zmienną, którą zdecydowano się nie brać pod uwagę w trakcie analizy, były urodzenia_pozamałżeńskie – także one wykazywały niską korelację ze zmienną objaśnianą.
+Ze względu na bardzo niską korelację ze zmienną objaśnianą (malzenstwa_wskaznik) zdecydowano się na usunięcie dwóch zmiennych: mieszkania_oddane oraz urodzenia_pozamalzenskie. Dodatkowo ze względu na wysoką wzajemną zaleść usunięto zmienną przedszkole oraz bezrobocie oraz cena_metr_kw
 
 ```{r}
 numeric_data <- numeric_data %>% 
-  select(-cena_metr_kw, -srednia_cena_mieszk, -urodzenia_pozamalzenskie)
+  select(-mieszkania_oddane, -urodzenia_pozamalzenskie, -przedszkole, -bezrobocie, -cena_metr_kw)
 
 data <- data %>%
-  select(-zywnosc, -cena_metr_kw, -srednia_cena_mieszk, -urodzenia_pozamalzenskie)
+  select(-mieszkania_oddane, -urodzenia_pozamalzenskie, -przedszkole, -bezrobocie, -cena_metr_kw)
 ```
 
 
@@ -202,9 +206,9 @@ Następnie definiujemy zmienne egzogeniczne naszego modelu
 
 ```{r}
 # Zmienne objaśniające
-zmienne <- c("saldo_migracji", "przedszkole", "wynagrodzenie", 
-             "mieszkania_oddane", "kwota_swiad_rodz", "absolwenci_na_10000", 
-             "urodzenia_zywe", "bezrobocie", "rozwody")
+zmienne <- c("saldo_migracji", "rozwody", "urodzenia_zywe", 
+             "wynagrodzenie", "kwota_swiad_rodz", "absolwenci_na_10000", 
+             "srednia_cena_mieszk")
 
 # Formuła modelu
 form <- as.formula(paste("malzenstwa_wskaznik ~", paste(zmienne, collapse = " + ")))
@@ -224,23 +228,27 @@ summary(model_pool)
 
 Oceniając jakość modelu regresji łącznej (Pooling Model), uwzględniamy kilka kluczowych wskaźników, które pozwalają ocenić, jak dobrze model tłumaczy zmienność zmiennej objaśnianej oraz jak istotne są poszczególne zmienne objaśniające.
 
-1. **Współczynnik determinacji (R-squared)**:
-Wartość R-squared wynosząca 0.71965 sugeruje, że model wyjaśnia około 72% zmienności zmiennej objaśnianej, czyli wskaźnika małżeństw. Jest to stosunkowo dobra wartość, co wskazuje na to, że model dobrze dopasowuje się do danych. Oznacza to, że zmienne objaśniające w modelu mają znaczący wpływ na zmienną zależną.
 
-2. **Skorygowany współczynnik determinacji (Adjusted R-squared)**:
-Skorygowany R-squared, który wynosi 0.68361, również wskazuje na dobrą jakość modelu, uwzględniając liczbę zmiennych objaśniających. Skorygowany wskaźnik bierze pod uwagę liczbę zmiennych w modelu, karząc za dodanie zmiennych, które nie wnoszą istotnej wartości. Wartość ta sugeruje, że model jest dobrze dopasowany, a dodanie nowych zmiennych objaśniających nie pogorszyło jakości modelu.
+1. **Współczynnik determinacji (R-squared)**:  
+   Wartość R-squared wynosząca 0.45139 sugeruje, że model wyjaśnia około 45% zmienności zmiennej objaśnianej, czyli wskaźnika małżeństw. Jest to umiarkowana wartość, wskazująca na to, że model częściowo dopasowuje się do danych. Wartość ta sugeruje, że zmienne objaśniające w modelu mają pewien wpływ na zmienną zależną, ale nadal pozostaje sporo zmienności niewytłumaczonej.
 
-3. **Test F**:
-Test F sprawdza, czy model jako całość jest istotny. Uzyskana wartość statystyki F wynosząca 19.9654, z p-wartością 4.1568e-16, wskazuje na to, że model jest statystycznie istotny, czyli zmienne objaśniające w sposób istotny wpływają na zmienną zależną.
+2. **Skorygowany współczynnik determinacji (Adjusted R-squared)**:  
+   Skorygowany R-squared wynoszący 0.42612 wskazuje na dobrą jakość modelu, uwzględniając liczbę zmiennych objaśniających. Ta wartość sugeruje, że model jest dobrze dopasowany i nie zawiera zbędnych zmiennych, które mogłyby pogorszyć jakość dopasowania.
 
-4. **Wartości p zmiennych objaśniających**:
-Analizując wartości p dla poszczególnych zmiennych objaśniających, możemy stwierdzić, że zmienne takie jak „przedszkole”, „mieszkania_oddane”, „kwota_swiad_rodz”, „absolwenci_na_10000”, „urodzenia_zywe”, „bezrobocie” oraz „rozwody” mają wartość p mniejszą niż 0.05, co oznacza, że są one statystycznie istotne. Z drugiej strony, zmienne takie jak „saldo_migracji” oraz „wynagrodzenie” nie mają istotnego wpływu na zmienną zależną, ponieważ ich wartości p są większe niż 0.05.
+3. **Test F**:  
+   Test F sprawdza, czy model jako całość jest statystycznie istotny. Uzyskana wartość statystyki F wynosząca 17.866, z p-wartością < 2.22e-16, wskazuje na to, że model jest statystycznie istotny, czyli zmienne objaśniające w sposób istotny wpływają na zmienną zależną.
 
-5. **Rozkład reszt**:
-Rozkład reszt wskazuje, że model nie wykazuje istotnych błędów systematycznych. Minimum reszt wynosi -0.6029940, a maksimum 0.4701504, co sugeruje, że błędy prognoz są rozłożone równomiernie wokół zera. Dodatkowo, wartość mediany reszt wynosząca 0.0085377 świadczy o braku dużych odchyleń od wartości przewidywanych.
+4. **Wartości p zmiennych objaśniających**:  
+   - **Zmienne istotne statystycznie**: Zmienne takie jak „rozwody” (p = 0.044), „wynagrodzenie” (p = 0.0004111), „absolwenci_na_10000” (p = 0.0049277) są istotne na poziomie 0.05, co oznacza, że mają znaczący wpływ na zmienną zależną.  
+   - **Zmienne nieistotne statystycznie**: Z kolei zmienne takie jak „saldo_migracji” (p = 0.1257), „urodzenia_zywe” (p = 0.235), „kwota_swiad_rodz” (p = 0.4085), oraz „srednia_cena_mieszk” (p = 0.6407) mają p-wartości większe niż 0.05, co sugeruje, że nie mają one istotnego wpływu na zmienną zależną w tym modelu.
 
-## Model z efektami ustalonymi
+5. **Rozkład reszt**:  
+   Rozkład reszt wskazuje, że model nie wykazuje istotnych błędów systematycznych. Minimum reszt wynosi -1.016358, a maksimum 0.769498, co sugeruje, że błędy prognoz są rozłożone równomiernie wokół zera. Dodatkowo, wartość mediany reszt wynosząca 0.038826 świadczy o braku dużych odchyleń od wartości przewidywanych.
 
+
+## Jednokierunkowy model z efektami ustalonymi
+
+### Estymacja modelu
 Model regresji z efektami ustalonymi (ang. fixed effects model) zakłada się, że różnice pomiędzy jednostkami (np. krajami, województwami, firmami) są istotne i należy je uwzględnić w modelu. Model ten pozwala na kontrolowanie indywidualnych cech jednostek, które nie zmieniają się w czasie, a które mogą wpływać na zmienną objaśnianą. Dzięki temu, efekt ustalony pozwala na oddzielenie wpływu zmiennych objaśniających od wpływu specyficznych cech jednostek, które mogą stanowić istotne źródło zmienności.
 
 ```{r}
@@ -250,19 +258,115 @@ model_fe <- plm(form, data = panel_data, model = "within")
 # Podsumowanie wyników
 summary(model_fe)
 ```
+Miary dla jednokierunkowego modelu z efektami ustalonymi:
+1. **Współczynnik determinacji (R-squared)**:
+   - R-squared wynoszące **0.7032** sugeruje, że model wyjaśnia około 70% zmienności zmiennej zależnej, czyli wskaźnika małżeństw. Jest to stosunkowo dobra wartość, co wskazuje, że model dobrze dopasowuje się do danych, uwzględniając efekty jednostkowe.
 
-## Model z efektami losowymi
+2. **Skorygowany współczynnik determinacji (Adjusted R-squared)**:
+   - Skorygowany R-squared wynoszący **0.65554** oznacza, że model jest nadal dobrze dopasowany, ale uwzględnia on liczbę zmiennych objaśniających. Wartość ta sugeruje, że dodanie zmiennych objaśniających nie wpłynęło negatywnie na jakość dopasowania.
+
+3. **Test F**:
+   - Test F z wartością statystyki **46.3702** i p-wartością **< 2.22e-16** wskazuje, że model jako całość jest statystycznie istotny. Oznacza to, że zmienne objaśniające mają istotny wpływ na zmienną zależną (wskaźnik małżeństw).
+
+4. **Wartości p zmiennych objaśniających**:
+   - **"rozwody"**: Wartość p **1.518e-09** jest znacznie mniejsza niż 0.05, co oznacza, że zmienna ta jest statystycznie istotna. Wzrost liczby rozwodów ma istotny wpływ na wzrost wskaźnika małżeństw.
+   - **"urodzenia_zywe"**: Wartość p **9.751e-06** również wskazuje na statystyczną istotność tej zmiennej. Wzrost liczby urodzeń ma znaczący wpływ na spadek wskaźnika małżeństw.
+   - **"wynagrodzenie"**: Wartość p **0.04589** jest mniejsza niż 0.05, co oznacza, że wynagrodzenia mają wpływ na wskaźnik małżeństw, ale jest to mniej wyraźne niż w przypadku poprzednich zmiennych.
+   - **"kwota_swiad_rodz"**, **"absolwenci_na_10000"**: Wartości p są większe niż 0.05, co oznacza, że te zmienne nie mają statystycznie istotnego wpływu na zmienną zależną.
+   - **"srednia_cena_mieszk"**: Zmienna ta ma wartość p **1.011e-06**, co wskazuje na jej silną statystyczną istotność. Wyższa cena mieszkań ma znaczący wpływ na spadek wskaźnika małżeństw.
+
+5. **Rozkład reszt**:
+   - Rozkład reszt jest stosunkowo równomierny, z wartością minimum **-0.811186** oraz maksimum **0.596663**, co sugeruje, że model dobrze odwzorowuje dane, a błędy są rozłożone wokół zera.
+   - Mediana reszt wynosząca **0.035905** wskazuje na małe odchylenia od wartości przewidywanych.
+   
+### Porównywanie modeli
+
+
+## Dwukierunkowy model z efektami ustalonymi
+
+### Estymacja modelu
+
+Dwukierunkowy model z efektami ustalonymi (ang. **Two-way Fixed Effects Model**) to rozszerzenie modelu efektów ustalonych, który pozwala na uwzględnienie dwóch typów efektów stałych w analizie panelowej: efektów jednostkowych oraz efektów czasowych. Model dwukierunkowy zakłada, że każda jednostka może mieć swój specyficzny efekt, który pozostaje stały w czasie, a także każdy okres może mieć efekt, który jest wspólny dla wszystkich jednostek. Model uwzględnia te dwa typy efektów poprzez usunięcie zarówno efektów jednostkowych, jak i czasowych, z danych. Dzięki temu, analizując wpływ zmiennych objaśniających na zmienną zależną, można wyeliminować zarówno indywidualne cechy jednostek, jak i zmiany, które są wspólne dla wszystkich jednostek w danym czasie.
+
+```{r}
+# Model efektów ustalonych dwukierunkowy
+model_fe_tw <- plm(form, data = panel_data, model = "within", effect = "twoways")
+
+# Podsumowanie wyników
+summary(model_fe_tw)
+```
+Model z efektami dwukierunkowymi (twoways effects) ma R-squared na poziomie 0.3674, co sugeruje umiarkowane dopasowanie. Wynagrodzenie jest istotnym czynnikiem (p-value < 0.001), a inne zmienne, takie jak saldo_migracji i rozwody, mają wartości p-bliskie granicy istotności (p < 0.1), ale nie są statystycznie istotne. R-squared skorygowane (0.2142) jest niskie, co sugeruje, że model ma ograniczoną zdolność wyjaśniania zmienności danych.
+
+### Porównanie wyników
+
+
+
+```{r}
+
+```
+
+## Jednokierunkowy model z efektami losowymi
+
+### Estyamcja modelu 
 
 Model regresji z efektami losowymi (ang. random effects model) jest kolejnym podejściem w analizie danych panelowych, które zakłada, że różnice między jednostkami  są losowe i niezależne od zmiennych objaśniających. Oznacza to, że różnice między jednostkami traktowane są jako część składnika losowego, który jest zdefiniowany przez rozkład probabilistyczny.
 
 W przeciwieństwie do modelu z efektami ustalonymi, model z efektami losowymi nie zakłada, że różnice między jednostkami są związane z ich indywidualnymi cechami, ale raczej traktuje je jako losowy składnik w procesie generowania danych. W związku z tym model z efektami losowymi jest bardziej odpowiedni w przypadku, gdy jednostki są traktowane jako losowe próby z populacji, a efekty jednostkowe nie są skorelowane z zmiennymi objaśniającymi.
 
 ```{r}
-re_model <- plm(form, data = panel_data, model = "random")
-summary(re_model)
+model_re <- plm(form, data = panel_data, model = "random")
+summary(model_re)
 ```
 
-## Model jednokierunkowy
+Wyniki modelu efektów losowych (Random Effect Model) wskazują na następujące kluczowe obserwacje:
 
-## Model dwukierunkowy
+- zmienność wewnątrz jednostek ma dominujący wpływ (około 82,5% całkowitej zmienności).
+- efekt indywidualny (różnice między jednostkami) stanowi tylko 17,5% zmienności.
+Istotne zmienne:
+- Rozwody (p = 0.0001), wynagrodzenie (p = 0.0403) oraz absolwenci na 10000 (p = 0.0059) mają istotny wpływ na zmienną zależną.
+- Saldo migracji (p = 0.936), urodzenia żywe (p = 0.204), kwota świadczeń rodzinnych (p = 0.389) i średnia cena mieszkań (p = 0.240) nie są istotnymi zmiennymi.
+Dopasowanie modelu:
+- R-squared = 0.4996, co wskazuje na średnie dopasowanie modelu do danych.
+Statystyka chi-kwadrat wynosi 151.765 (p < 2.22e-16), co sugeruje, że model jest istotny statystycznie.
+
+### Porównanie wyników
+
+## Dwukierunkowy model z efektami losowymi
+
+Dwukierunkowy model z efektami losowymi (ang. Two-Way Random Effects Model) jest rozszerzeniem klasycznego modelu z efektami losowymi, w którym uwzględnia się dwie grupy efektów:
+
+- Efekty indywidualne: Zmienność związana z jednostkami w panelu danych, na przykład z różnicami pomiędzy poszczególnymi obiektami.
+- Efekty czasowe: Zmienność związana z upływem czasu, która może wpływać na wszystkie jednostki w tym samym czasie.
+
+Model dwukierunkowy z efektami losowymi zakłada, że zarówno efekty indywidualne, jak i czasowe są losowe i niezależne od pozostałych zmiennych w modelu. W tym przypadku wykorzystywana jest transformacja Swamy-Arora, która pozwala na wyodrębnienie i oszacowanie tych efektów w panelu danych.
+
+```{r}
+# Model efektów ustalonych dwukierunkowy
+model_fe_tw <- plm(form, data = panel_data, model = "random", effect = "twoways")
+
+# Podsumowanie wyników
+summary(model_fe_tw)
+```
+
+Wyniki przedstawiają model efektów losowych typu „two-way” (dwukierunkowy), z zastosowaniem transformacji Swamy-Arora. Model ten uwzględnia zarówno efekty indywidualne (zmienne specyficzne dla jednostek) oraz efekty czasowe.
+
+**Kluczowe wyniki:**
+
+- Efekty losowe (Random Effects):
+- Efekt indywidualny (individual): 0.019198 (std. dev. = 0.138556), co wskazuje na zmienność wśród jednostek.
+- Efekt czasowy (time): 0.040739 (std. dev. = 0.201840), co sugeruje istotną zmienność w czasie.
+- Efekt idiosynkratyczny (idiosyncratic): 0.009852 (std. dev. = 0.099256), który odzwierciedla losową zmienność niezwiązaną z jednostkami i czasem.
+- Współczynniki theta dla efektów są odpowiednio 0.7791 (id), 0.878 (czas) i 0.7645 (całkowity).
+Współczynniki regresji:
+
+- Saldo migracji ma istotny wpływ na zmienną zależną (estymacja = -0.006635, p-value = 0.002201).
+- Kwota świadczeń rodzinnych (kwota_swiad_rodz) również ma istotny wpływ (estymacja = -0.00016132, p-value = 0.016054).
+- Średnia cena mieszkania (srednia_cena_mieszk) jest na granicy istotności (p-value = 0.096019).
+- Pozostałe zmienne, takie jak rozwody, wynagrodzenia, urodzenia żywe czy absolwenci na 10000, nie mają istotnego wpływu, ponieważ ich p-wartości są wyższe niż 0.05.
+- Dopasowanie modelu:
+
+R-squared = 0.1623, co sugeruje, że model wyjaśnia tylko 16,23% zmienności w danych.
+Adj. R-squared = 0.1237, co uwzględnia liczbę zmiennych objaśniających.
+Statystyka Chi-squared = 29.45 z p-wartością 0.00011974 wskazuje na istotność modelu.
+
 
