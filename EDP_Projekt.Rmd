@@ -26,7 +26,7 @@ Celem niniejszej pracy jest przeprowadzenie analizy danych panelowych w celu osz
 
 ## Zmienne użyte w pracy
 
-Badanie dotyczy 16 województw Polski w okresie od 2013 roku do 2022 roku. Oznacza to, że wykorzystane dane panelowe będą postaci 16 jednostek przekroju w 5 okresach. Zbiór danych został utworzony na podstawie danych zawartych w Banku Danych Lokalnych Głównego Urzędu Statystycznego (BDL GUS). Początkowo wstępny zbiór danych zawiera 13 zmiennych objaśniających oraz 1 zmienną objaśnianą. Poniżej opisano zbiór danych:
+Badanie dotyczy 16 województw Polski w okresie od 2013 roku do 2022 roku. Oznacza to, że wykorzystane dane panelowe będą postaci 16 jednostek przekroju w 10 okresach. Zbiór danych został utworzony na podstawie danych zawartych w Banku Danych Lokalnych Głównego Urzędu Statystycznego (BDL GUS). Początkowo wstępny zbiór danych zawiera 13 zmiennych objaśniających oraz 1 zmienną objaśnianą. Poniżej opisano zbiór danych:
 
 ### Zmienna endogeniczna (objaśniana):
 - **malzenstwa_wskaznik** –  Stosunek liczby małżeństw zawartych w danym roku do 10 tys. ludności
@@ -63,9 +63,7 @@ library(tidyr)
 library(gridExtra)
 library(plm)
 library(glmulti)
-library(lmtest)
-library(orcutt)
-library(lmtest)
+library(lmtest)  
 library(prais)
 ```
 
@@ -117,19 +115,17 @@ datatable(summary_stats_rounded, options = list(pageLength = 10, scrollX = TRUE,
 
 Na podstawie statystyk opisowych możemy wyciągnąć następujące wnioski i obserwacje dotyczące danych:
 
-- **Wartość średnia zmiennej `malzenstwa_wskaznik` wynosi 4.63, ale odchylenie standardowe (0.47) jest stosunkowo niewielkie**. Oznacza to, że wskaźnik małżeństw w różnych województwach jest dość stabilny, z niewielkimi różnicami w porównaniu do średniej. Regiony o wyższych wskaźnikach małżeństw mogą cechować się tradycyjnymi wartościami rodzinnymi i społecznymi, podczas gdy w województwach z niższymi wartościami tego wskaźnika, może występować większa otwartość na inne formy życia rodzinnego lub większe trudności związane z decyzją o zawarciu małżeństwa, np. z powodu problemów finansowych.
+Wskaźnik **małżeństw** (średnia 4.63, odchylenie standardowe 0.47), wskazuje na dość stabilny poziom małżeństw w różnych województwach. Analizując zależności między tym wskaźnikiem a innymi zmiennymi, można zauważyć kilka istotnych trendów, które wpływają na decyzje o zawarciu małżeństwa.
 
-- **Duża zmienność w zmiennej `saldo_migracji`:** Zmienna ta pokazuje dużą różnicę między wartościami minimalnymi (-33.57) i maksymalnymi (30.91). Regiony o wysokim saldzie migracji mogą charakteryzować się napływem nowych mieszkańców, co może wpływać na większą liczbę małżeństw. Z kolei w województwach z negatywnym saldem migracji, emigracja może prowadzić do spadku liczby zawieranych małżeństw, gdyż osoby wyjeżdżające mogą nie zakładać rodzin w miejscu, z którego pochodzą.
+**Saldo migracji** (średnia -3.36, odchylenie standardowe 12.93) wykazuje dużą zmienność, co może sugerować, że regiony z dodatnim saldem migracyjnym, czyli napływem nowych mieszkańców, mogą mieć wyższy wskaźnik małżeństw. Nowi mieszkańcy mogą bowiem przyczyniać się do większej liczby zawieranych małżeństw, szczególnie jeśli są to osoby młodsze, które często podejmują decyzje o małżeństwie. W regionach z ujemnym saldem migracyjnym, gdzie emigracja jest bardziej powszechna, wskaźnik małżeństw może być niższy, gdyż brak młodszych osób w regionie może wpłynąć na mniejszą liczbę zawieranych małżeństw.
 
-- **Zmienna `zywnosc` wskazuje na stabilność w poziomie wydatków na żywność:** Średnia wynosi 26.13, a odchylenie standardowe 2.4, co sugeruje, że wydatki na żywność są stosunkowo jednorodne w różnych województwach. Wysokie wartości tej zmiennej mogą wskazywać na regiony, w których standard życia jest wyższy, a rodziny mogą być bardziej stabilne finansowo, co sprzyja decyzjom o zawieraniu małżeństw. W regionach, w których wydatki na żywność są niższe, mogłyby występować trudności finansowe, które wpływają na decyzję o małżeństwie.
+Wysokie **bezrobocie** (średnia 3.47, odchylenie standardowe 1.42) może być czynnikiem negatywnie wpływającym na decyzję o zawarciu małżeństwa. W regionach o wyższym bezrobociu, gdzie warunki finansowe są gorsze, pary mogą odwlekać decyzję o małżeństwie, obawiając się trudności ekonomicznych. Mniejsza stabilność finansowa może prowadzić do większych trudności w podejmowaniu decyzji o założeniu rodziny.
 
-- **Wysoka zmienność w liczbie `rozwody`:** Zmienna ta ma średnią wartość 16.07 i odchylenie standardowe 2.63, co sugeruje, że liczba rozwodów w różnych województwach jest zróżnicowana. Regiony z wyższą liczbą rozwodów mogą wskazywać na mniejsze stabilności małżeństw lub na społeczne i ekonomiczne czynniki, które wpływają na większe trudności w utrzymaniu małżeństw. Może to mieć związek z warunkami finansowymi, w których pary mogą decydować się na rozstanie.
+Kolejnym czynnikiem wpływającym na wskaźnik małżeństw są **ceny nieruchomości** (średnia 4551.08 zł, odchylenie standardowe 1424.05 zł). Wysokie ceny nieruchomości w regionie mogą zniechęcać młodsze pary do zawierania małżeństw, gdyż trudności związane z zakupem mieszkania mogą sprawić, że para będzie odwlekała decyzję o założeniu rodziny. W regionach o niższych cenach nieruchomości może być łatwiej w podjęciu decyzji o małżeństwie, co może skutkować wyższym wskaźnikiem małżeństw.
 
-- **Różnice w wynagrodzeniach w województwach:** Zmienna `wynagrodzenie` wskazuje na duże zróżnicowanie w zarobkach, od 2836 do 8194 zł, z średnią wynoszącą 4393.97 zł i odchyleniem standardowym 1039.67. Wysokie wynagrodzenia mogą wpływać na większą stabilność finansową par, co może prowadzić do wyższej liczby zawieranych małżeństw w województwach o wyższych dochodach. Natomiast w regionach z niższymi wynagrodzeniami, młodsze pokolenia mogą wstrzymywać decyzję o małżeństwie z powodu braku poczucia stabilności finansowej.
+Z kolei **wynagrodzenia** (średnia 4393.97 zł, odchylenie standardowe 1039.67 zł) mają wpływ na stabilność finansową par. Wyższe wynagrodzenia mogą sprzyjać zawieraniu małżeństw, ponieważ pary czują się bardziej pewne swojej sytuacji finansowej. W regionach, gdzie wynagrodzenia są wyższe, można spodziewać się wyższego wskaźnika małżeństw, ponieważ większa stabilność finansowa pozwala na bardziej swobodne podejmowanie decyzji o małżeństwie i założeniu rodziny.
 
-- **Zmienność w liczbie `przedszkole`:** Zmienna ta wskazuje, że w województwach liczba przedszkoli na 10 tys. ludności waha się od 1.17 do 6.84, co może świadczyć o zróżnicowanym dostępie do edukacji przedszkolnej. Regiony z wyższą liczbą przedszkoli mogą oferować lepsze warunki do wychowywania dzieci, co może skłaniać pary do zakładania rodzin i zawierania małżeństw. Z kolei województwa z mniejszą liczbą przedszkoli mogą mieć ograniczony dostęp do usług opiekuńczych, co może wpływać na decyzje o posiadaniu dzieci i zawieraniu małżeństw.
-
-
+Ostatnią istotną zmienną, która może wpływać na wskaźnik małżeństw, jest **liczba urodzeń żywych** (średnia 92.91, odchylenie standardowe 10.35). W regionach, gdzie wskaźnik urodzeń żywych jest wysoki, można zauważyć większą tendencję do zawierania małżeństw. Wysoki poziom urodzeń często wskazuje na większą liczbę rodzinnych decyzji podejmowanych przez młodsze pary, które decydują się na małżeństwo w celu zapewnienia stabilności dzieciom.
 
 
 ## Brakujące dane w zbiorze
@@ -342,7 +338,10 @@ model_fe_tw <- plm(form, data = panel_data, model = "within", effect = "twoways"
 # Podsumowanie wyników
 summary(model_fe_tw)
 ```
-Model z efektami dwukierunkowymi (twoways effects) ma R-squared na poziomie 0.3674, co sugeruje umiarkowane dopasowanie. Wynagrodzenie jest istotnym czynnikiem (p-value < 0.001), a inne zmienne, urodzenia_zywe ma p-value bliskie 0.1, ale nie jest statystycznie istotne. R-squared skorygowane (0.2116) jest niskie, co sugeruje, że model ma ograniczoną zdolność wyjaśniania zmienności danych.
+Wyniki modelu **Two-Way Effects Within**, zastosowanego do danych panelowych, pokazują, że spośród analizowanych zmiennych jedynie **wynagrodzenie** ma istotny wpływ na zmienną zależną, z wartością p wynoszącą 0.00006, co wskazuje na silną statystyczną istotność. Zmienna **przedszkole** wykazuje wpływ bliski istotności (p = 0.08061), sugerując, że dostępność przedszkoli może mieć negatywny wpływ na analizowaną zmienną zależną. Pozostałe zmienne, takie jak **rozwody**, **urodzenia_zywe**, **kwota_swiad_rodz**, **absolwenci_na_10000** oraz **srednia_cena_mieszk**, nie mają istotnego wpływu na wynik modelu, ponieważ ich wartości p są znacznie wyższe niż 0.05.
+
+Model wyjaśnia około 36.5% zmienności zmiennej zależnej (R-squared = 0.36532), a dostosowane R-squared wynosi 0.21161, co oznacza, że po uwzględnieniu liczby zmiennych model wyjaśnia 21.16% zmienności. F-statystyka (10.5253) oraz jej p-value (2.1006e-10) wskazują, że model jest statystycznie istotny jako całość.
+
 
 
 ## Jednokierunkowy model z efektami losowymi
@@ -356,17 +355,11 @@ model_re <- plm(form, data = panel_data, model = "random")
 summary(model_re)
 ```
 
-Wyniki modelu efektów losowych (Random Effect Model) wskazują na następujące kluczowe obserwacje:
+Wyniki modelu **One-Way (individual) Effects Random Effect Model** z zastosowaniem transformacji Swamy-Arora pokazują istotność kilku zmiennych w modelu. **Rożwody** (p = 0.0004296) oraz **urodzenia_zywe** (p = 2.684e-14) mają silny, pozytywny wpływ na analizowaną zmienną zależną. Zmienne te są statystycznie istotne, co sugeruje, że większa liczba rozwodów oraz wyższy wskaźnik urodzeń żywych mają wpływ na analizowaną zmienną. **Absolwenci na 10000** (p = 0.0432117) również wykazują istotny wpływ na wynik modelu, jednak wpływ ten jest słabszy.
 
-- zmienność wewnątrz jednostek ma dominujący wpływ (około 82,5% całkowitej zmienności).
-- efekt indywidualny (różnice między jednostkami) stanowi tylko 17,5% zmienności.
-Istotne zmienne:
-- Rozwody (p = 0.0001), wynagrodzenie (p = 0.0403) oraz absolwenci na 10000 (p = 0.0059) mają istotny wpływ na zmienną zależną.
-- Saldo migracji (p = 0.936), urodzenia żywe (p = 0.204), kwota świadczeń rodzinnych (p = 0.389) i średnia cena mieszkań (p = 0.240) nie są istotnymi zmiennymi.
-Dopasowanie modelu:
-- R-squared = 0.4996, co wskazuje na średnie dopasowanie modelu do danych.
-Statystyka chi-kwadrat wynosi 151.765 (p < 2.22e-16), co sugeruje, że model jest istotny statystycznie.
+Pozostałe zmienne, takie jak **wynagrodzenie**, **kwota_swiad_rodz**, **srednia_cena_mieszk**, oraz **przedszkole**, nie mają statystycznie istotnego wpływu, co widać w wartościach p powyżej 0.05.
 
+Model wyjaśnia 62% zmienności zmiennej zależnej (R-squared = 0.62004), a dostosowane R-squared wynosi 60.25%. Test Chisq (248.038) z p-wartością poniżej 2.22e-16 wskazuje na bardzo dobrą jakość dopasowania modelu. 
 
 
 ## Dwukierunkowy model z efektami losowymi
@@ -386,26 +379,12 @@ model_fe_tw <- plm(form, data = panel_data, model = "random", effect = "twoways"
 summary(model_fe_tw)
 ```
 
-Wyniki przedstawiają model efektów losowych typu „two-way” (dwukierunkowy), z zastosowaniem transformacji Swamy-Arora. Model ten uwzględnia zarówno efekty indywidualne (zmienne specyficzne dla jednostek) oraz efekty czasowe.
+Wyniki modelu **Two-Way Effects Random Effect Model** z zastosowaniem transformacji Swamy-Arora wskazują na istotność kilku zmiennych w modelu. **Urodzenia żywe** (p = 5.359e-06) mają istotny, pozytywny wpływ na analizowaną zmienną zależną, co sugeruje, że wyższy wskaźnik urodzeń żywych wpływa na wynik modelu. Z kolei **rozwody** (p = 0.69864), **wynagrodzenie** (p = 0.49027), **absolwenci na 10000** (p = 0.59722), **srednia cena mieszka** (p = 0.78444) oraz **przedszkole** (p = 0.98375) nie mają statystycznie istotnego wpływu na wynik modelu.
 
-**Kluczowe wyniki:**
+Model wyjaśnia jedynie 21.87% zmienności zmiennej zależnej (R-squared = 0.21873), a dostosowane R-squared wynosi 18.28%. Test Chisq (42.5555) z p-wartością 4.064e-07 wskazuje na ogólną istotność modelu.
 
-Efekty losowe (Random Effects):
-- Efekt indywidualny (individual): 0.019198 (std. dev. = 0.138556), co wskazuje na zmienność wśród jednostek.
-- Efekt czasowy (time): 0.040739 (std. dev. = 0.201840), co sugeruje istotną zmienność w czasie.
-- Efekt idiosynkratyczny (idiosyncratic): 0.009852 (std. dev. = 0.099256), który odzwierciedla losową zmienność niezwiązaną z jednostkami i czasem.
-- Współczynniki theta dla efektów są odpowiednio 0.7791 (id), 0.878 (czas) i 0.7645 (całkowity).
-Współczynniki regresji:
+Wartości parametrów efektów sugerują, że największa część zmienności wynika z **efektów czasowych** (0.737), a efekty indywidualne i idiosynkratyczne mają mniejszy udział (0.128 i 0.135, odpowiednio). Theta dla efektów czasowych wynosi 0.8964, a dla efektów indywidualnych 0.7059.
 
-- Saldo migracji ma istotny wpływ na zmienną zależną (estymacja = -0.006635, p-value = 0.002201).
-- Kwota świadczeń rodzinnych (kwota_swiad_rodz) również ma istotny wpływ (estymacja = -0.00016132, p-value = 0.016054).
-- Średnia cena mieszkania (srednia_cena_mieszk) jest na granicy istotności (p-value = 0.096019).
-- Pozostałe zmienne, takie jak rozwody, wynagrodzenia, urodzenia żywe czy absolwenci na 10000, nie mają istotnego wpływu, ponieważ ich p-wartości są wyższe niż 0.05.
-- Dopasowanie modelu:
-
-R-squared = 0.1623, co sugeruje, że model wyjaśnia tylko 16,23% zmienności w danych.
-Adj. R-squared = 0.1237, co uwzględnia liczbę zmiennych objaśniających.
-Statystyka Chi-squared = 29.45 z p-wartością 0.00011974 wskazuje na istotność modelu.
 
 ## Wybór modelu
 
@@ -471,12 +450,15 @@ Finalny model zawiera 5 zmiennych objaśniających:
 # Weryfikacja modelu
 Początkowo zbadana zostanie autokorelacja składnika losowego. W celu sprawdzenia, czy występuje przeprowadzony zostanie test Baltagi-Li
 
-***Hipotezy dla testu Baltagi-Li ***
+**Hipotezy dla testu Baltagi-Li:**
 
 - **Hipoteza zerowa (H₀):**  
-  Brak dowodów na autokorelację.
+  \( \rho = 0 \)  
+  (Brak autokorelacji)
+
 - **Hipoteza alternatywna (H₁):**  
-  Autokorelacja występuje.
+  \( \rho \neq 0 \)  
+  (Autokorelacja występuje)
 
 ``` {r}
 pbg_test <- pbgtest(final_model)
@@ -499,13 +481,13 @@ Następnie zbadana zostanie normalność rozkładu reszt za pomocą testu Shapir
 
 ### Test Shapiro-Wilka
 
-***Hipotezy dla testu Shapiro-Wilka***
+**Hipotezy dla testu Shapiro-Wilka**
 
 - **Hipoteza zerowa (H₀):**  
-  Próba pochodzi z populacji o rozkładzie normalnym
+  \( H_0: \text{Próba pochodzi z populacji o rozkładzie normalnym} \)
 
 - **Hipoteza alternatywna (H₁):**  
-  Próba nie pochodzi z populacji o rozkładzie normalnym
+  \( H_1: \text{Próba nie pochodzi z populacji o rozkładzie normalnym} \)
 
 ```{r}
 res <- residuals(final_model)
