@@ -34,6 +34,7 @@ Dane pochodzą z Banku Danych Lokalnych GUS. Brak brakujących wartości.
 ### Instalacja
 ```R
 install.packages(c("plm", "dplyr", "lmtest", "sandwich", "car", "psych", "corrplot", "ggplot2", "prais"))
+```
 
 **Autorzy**: Jakub Sornat, Maciej Tajs  
 **Kontakt**: [jakubsornat2001@gmail.com]  
