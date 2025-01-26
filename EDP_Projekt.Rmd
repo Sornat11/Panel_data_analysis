@@ -62,9 +62,14 @@ library(reshape2)
 library(tidyr)
 library(gridExtra)
 library(plm)
+library(glmulti)
+library(lmtest)
+library(orcutt)
+library(lmtest)
+library(prais)
 ```
 
-## Budowa przydatnych funckji
+## Budowa przydatnych funkcji
 
 Do badania przydate okazały się również funckję które na wstępnym etapie opracowano samodzielenie.
 
@@ -182,14 +187,13 @@ ggplot(cor_matrix_melted, aes(Var1, Var2, fill = value)) +
   labs(title = "Macierz Korelacji", fill = "Korelacja")  # Dodanie tytułu i legendy
 ```
 
-Ze względu na bardzo niską korelację ze zmienną objaśnianą (malzenstwa_wskaznik) zdecydowano się na usunięcie dwóch zmiennych: mieszkania_oddane oraz urodzenia_pozamalzenskie. Dodatkowo ze względu na wysoką wzajemną zaleść usunięto zmienną przedszkole oraz bezrobocie oraz cena_metr_kw
-
+Ze względu na bardzo niską korelację ze zmienną objaśnianą (malzenstwa_wskaznik) zdecydowano się na usunięcie trzech zmiennych: mieszkania_oddane, urodzenia_pozamalzenskie, saldo_migracji. Dodatkowo ze względu na wysoką zależność pomiędzy średnią ceną mieszkania a ceną średnią ceną za metr kwadratowy mieszkania usunięto cena_metr_kw.
 ```{r}
 numeric_data <- numeric_data %>% 
-  select(-mieszkania_oddane, -urodzenia_pozamalzenskie, -przedszkole, -bezrobocie, -cena_metr_kw)
+  select(-saldo_migracji, -mieszkania_oddane, -urodzenia_pozamalzenskie, -cena_metr_kw)
 
 data <- data %>%
-  select(-mieszkania_oddane, -urodzenia_pozamalzenskie, -przedszkole, -bezrobocie, -cena_metr_kw)
+  select(-saldo_migracji, -mieszkania_oddane, -urodzenia_pozamalzenskie, -cena_metr_kw)
 ```
 
 
@@ -206,9 +210,9 @@ Następnie definiujemy zmienne egzogeniczne naszego modelu
 
 ```{r}
 # Zmienne objaśniające
-zmienne <- c("saldo_migracji", "rozwody", "urodzenia_zywe", 
+zmienne <- c("rozwody", "urodzenia_zywe", 
              "wynagrodzenie", "kwota_swiad_rodz", "absolwenci_na_10000", 
-             "srednia_cena_mieszk")
+             "srednia_cena_mieszk", "przedszkole")
 
 # Formuła modelu
 form <- as.formula(paste("malzenstwa_wskaznik ~", paste(zmienne, collapse = " + ")))
@@ -229,15 +233,15 @@ Oceniając jakość modelu regresji łącznej (Pooling Model), uwzględniamy kil
 
 
 1. **Współczynnik determinacji (R-squared)**:  
-   Wartość R-squared wynosząca 0.45139 sugeruje, że model wyjaśnia około 45% zmienności zmiennej objaśnianej, czyli wskaźnika małżeństw. Jest to umiarkowana wartość, wskazująca na to, że model częściowo dopasowuje się do danych. Wartość ta sugeruje, że zmienne objaśniające w modelu mają pewien wpływ na zmienną zależną, ale nadal pozostaje sporo zmienności niewytłumaczonej.
+   Wartość R-squared wynosząca 0.61181 sugeruje, że model wyjaśnia około 61% zmienności zmiennej objaśnianej, czyli wskaźnika małżeństw. Jest to umiarkowana wartość, wskazująca na to, że model częściowo dopasowuje się do danych. Wartość ta sugeruje, że zmienne objaśniające w modelu mają pewien wpływ na zmienną zależną, ale nadal pozostaje sporo zmienności niewytłumaczonej.
 
 2. **Skorygowany współczynnik determinacji (Adjusted R-squared)**:  
-   Skorygowany R-squared wynoszący 0.42612 wskazuje na dobrą jakość modelu, uwzględniając liczbę zmiennych objaśniających. Ta wartość sugeruje, że model jest dobrze dopasowany i nie zawiera zbędnych zmiennych, które mogłyby pogorszyć jakość dopasowania.
+   Skorygowany R-squared wynoszący 0.59393 może wskazywać na obecność niepotrzebnych zmiennych objaśniających w modelu.
 
 
 3. **Wartości p zmiennych objaśniających**:  
-   - **Zmienne istotne statystycznie**: Zmienne takie jak „rozwody” (p = 0.044), „wynagrodzenie” (p = 0.0004111), „absolwenci_na_10000” (p = 0.0049277) są istotne na poziomie 0.05, co oznacza, że mają znaczący wpływ na zmienną zależną.  
-   - **Zmienne nieistotne statystycznie**: Z kolei zmienne takie jak „saldo_migracji” (p = 0.1257), „urodzenia_zywe” (p = 0.235), „kwota_swiad_rodz” (p = 0.4085), oraz „srednia_cena_mieszk” (p = 0.6407) mają p-wartości większe niż 0.05, co sugeruje, że nie mają one istotnego wpływu na zmienną zależną w tym modelu.
+   - **Zmienne istotne statystycznie**: Zmienne takie jak „rozwody” (p = 0.0338), „urodzenia_żywe” (p ~ 0), „absolwenci_na_10000” (p = 0.023) są istotne na poziomie 0.05, co oznacza, że mają znaczący wpływ na zmienną zależną.  
+   - **Zmienne nieistotne statystycznie**: Z kolei zmienne takie jak wynagrodzenie, kwota_swiadczen_rodzinnych, srednia_cena_mieszkania, przedszkole mają p-wartości większe niż 0.05, co sugeruje, że nie mają one istotnego wpływu na zmienną zależną w tym modelu.
 
 4. **Rozkład reszt**:  
    Rozkład reszt wskazuje, że model nie wykazuje istotnych błędów systematycznych. Minimum reszt wynosi -1.016358, a maksimum 0.769498, co sugeruje, że błędy prognoz są rozłożone równomiernie wokół zera. Dodatkowo, wartość mediany reszt wynosząca 0.038826 świadczy o braku dużych odchyleń od wartości przewidywanych.
@@ -306,24 +310,25 @@ summary(model_fe)
 ```
 Miary dla jednokierunkowego modelu z efektami ustalonymi:
 1. **Współczynnik determinacji (R-squared)**:
-   - R-squared wynoszące **0.7032** sugeruje, że model wyjaśnia około 70% zmienności zmiennej zależnej, czyli wskaźnika małżeństw. Jest to stosunkowo dobra wartość, co wskazuje, że model dobrze dopasowuje się do danych, uwzględniając efekty jednostkowe.
+   - R-squared wynoszące **0.73241** sugeruje, że model wyjaśnia około 73,2% zmienności zmiennej zależnej, czyli wskaźnika małżeństw. Jest to stosunkowo dobra wartość, co wskazuje, że model dobrze dopasowuje się do danych, uwzględniając efekty jednostkowe.
 
 2. **Skorygowany współczynnik determinacji (Adjusted R-squared)**:
-   - Skorygowany R-squared wynoszący **0.65554** oznacza, że model jest nadal dobrze dopasowany, ale uwzględnia on liczbę zmiennych objaśniających. Wartość ta sugeruje, że dodanie zmiennych objaśniających nie wpłynęło negatywnie na jakość dopasowania.
+   - Skorygowany R-squared wynoszący **0.68943** oznacza że różnica między nim a R-squared wynosi około 4.5 punkta procentowego - pokazuje to, że w modelu są prawdopodobnie niepotrzebne zmienne.
 
 3. **Test F**:
-   - Test F z wartością statystyki **46.3702** i p-wartością **< 2.22e-16** wskazuje, że model jako całość jest statystycznie istotny. Oznacza to, że zmienne objaśniające mają istotny wpływ na zmienną zależną (wskaźnik małżeństw).
+   - Test F z wartością statystyki **53.5671** i p-wartością **< 2.22e-16** wskazuje, że model jako całość jest statystycznie istotny. Oznacza to, że zmienne objaśniające mają istotny wpływ na zmienną zależną (wskaźnik małżeństw).
 
 4. **Wartości p zmiennych objaśniających**:
-   - **"rozwody"**: Wartość p **1.518e-09** jest znacznie mniejsza niż 0.05, co oznacza, że zmienna ta jest statystycznie istotna. Wzrost liczby rozwodów ma istotny wpływ na wzrost wskaźnika małżeństw.
-   - **"urodzenia_zywe"**: Wartość p **9.751e-06** również wskazuje na statystyczną istotność tej zmiennej. Wzrost liczby urodzeń ma znaczący wpływ na spadek wskaźnika małżeństw.
-   - **"wynagrodzenie"**: Wartość p **0.04589** jest mniejsza niż 0.05, co oznacza, że wynagrodzenia mają wpływ na wskaźnik małżeństw, ale jest to mniej wyraźne niż w przypadku poprzednich zmiennych.
-   - **"kwota_swiad_rodz"**, **"absolwenci_na_10000"**: Wartości p są większe niż 0.05, co oznacza, że te zmienne nie mają statystycznie istotnego wpływu na zmienną zależną.
-   - **"srednia_cena_mieszk"**: Zmienna ta ma wartość p **1.011e-06**, co wskazuje na jej silną statystyczną istotność. Wyższa cena mieszkań ma znaczący wpływ na spadek wskaźnika małżeństw.
+   - **"rozwody"**: Wartość p **~0** jest znacznie mniejsza niż 0.05, co oznacza, że zmienna ta jest statystycznie istotna. Wzrost liczby rozwodów ma istotny wpływ na wzrost wskaźnika małżeństw.
+   - **"urodzenia_zywe"**: Wartość p **0.001** również wskazuje na statystyczną istotność tej zmiennej. Wzrost liczby urodzeń ma znaczący wpływ na spadek wskaźnika małżeństw.
+   - **"wynagrodzenie"**: Wartość p **0.0065** jest mniejsza niż 0.05, co oznacza, że wynagrodzenia mają wpływ na wskaźnik małżeństw, ale jest to mniej wyraźne niż w przypadku poprzednich zmiennych.
+   - **"kwota_swiad_rodz"**, **"absolwenci_na_10000"**: Wartości p są znacznie większe niż 0.05, co oznacza, że te zmienne nie mają statystycznie istotnego wpływu na zmienną zależną.
+   - **"srednia_cena_mieszk"**: Zmienna ta ma wartość p **0.0045**, co wskazuje na jej silną statystyczną istotność. Wyższa cena mieszkań ma znaczący wpływ na spadek wskaźnika małżeństw.
+   - **"przedszkole"**: Zmienna ta ma wartość p **0.0035**, co wskazuje na jej silną statystyczną istotność. Im więcej przedszkoli na 10000 mieszkańców, tym mniejszy jest wskaźnik małżeństw.
 
 5. **Rozkład reszt**:
-   - Rozkład reszt jest stosunkowo równomierny, z wartością minimum **-0.811186** oraz maksimum **0.596663**, co sugeruje, że model dobrze odwzorowuje dane, a błędy są rozłożone wokół zera.
-   - Mediana reszt wynosząca **0.035905** wskazuje na małe odchylenia od wartości przewidywanych.
+   - Rozkład reszt jest stosunkowo równomierny, z wartością minimum **-0.696203** oraz maksimum **0.536345**, co sugeruje, że model dobrze odwzorowuje dane, a błędy są rozłożone wokół zera.
+   - Mediana reszt wynosząca **0.019792** wskazuje na małe odchylenia od wartości przewidywanych.
    
 
 ## Dwukierunkowy model z efektami ustalonymi
@@ -337,7 +342,7 @@ model_fe_tw <- plm(form, data = panel_data, model = "within", effect = "twoways"
 # Podsumowanie wyników
 summary(model_fe_tw)
 ```
-Model z efektami dwukierunkowymi (twoways effects) ma R-squared na poziomie 0.3674, co sugeruje umiarkowane dopasowanie. Wynagrodzenie jest istotnym czynnikiem (p-value < 0.001), a inne zmienne, takie jak saldo_migracji i rozwody, mają wartości p-bliskie granicy istotności (p < 0.1), ale nie są statystycznie istotne. R-squared skorygowane (0.2142) jest niskie, co sugeruje, że model ma ograniczoną zdolność wyjaśniania zmienności danych.
+Model z efektami dwukierunkowymi (twoways effects) ma R-squared na poziomie 0.3674, co sugeruje umiarkowane dopasowanie. Wynagrodzenie jest istotnym czynnikiem (p-value < 0.001), a inne zmienne, urodzenia_zywe ma p-value bliskie 0.1, ale nie jest statystycznie istotne. R-squared skorygowane (0.2116) jest niskie, co sugeruje, że model ma ograniczoną zdolność wyjaśniania zmienności danych.
 
 
 ## Jednokierunkowy model z efektami losowymi
@@ -429,5 +434,112 @@ hausman_test <- phtest(model_fe, model_re)
 hausman_test
 ```
   
-Ponieważ wartość p jest bardzo mała (1.128e-05), odrzucono hipotezę zerową, która mówi, że modele są zgodne. To sugeruje, że model efektów stałych (FE) jest bardziej odpowiedni niż model efektów losowych (RE) w tym przypadku.
+Ponieważ wartość p jest bliska 0, odrzucono hipotezę zerową, która mówi, że modele są zgodne. To sugeruje, że model efektów stałych (FE) jest bardziej odpowiedni niż model efektów losowych (RE) w tym przypadku.
+
+## Budowa ostatecznego modelu
+Modelem finalnym będzie jednokierunkowy model FE. W celu wybrania zmiennych objaśniających zostanie zastosowana metoda krokowa. Pierwszym krokiem będzie usunięcie zmiennej absolwenci_na_10000, której p-value wynosiło 0.345
+``` {r}
+variables_step_1  <- c("rozwody", "urodzenia_zywe", 
+             "wynagrodzenie", "kwota_swiad_rodz",  
+             "srednia_cena_mieszk", "przedszkole")
+form_step_1 <- as.formula(paste("malzenstwa_wskaznik ~", paste(variables_step_1, collapse = " + ")))
+model_fe_step_1 <- plm(form_step_1, data = panel_data, model = "within")
+summary(model_fe_step_1)
+panel_data <- within(panel_data, rm(absolwenci_na_10000))
+```
+W drugim kroku usunięta zostanie zmienna objaśniająca kwota_swiad_rodz
+```{r}
+variables_step_2  <- c("rozwody", "urodzenia_zywe", 
+             "wynagrodzenie",   
+             "srednia_cena_mieszk", "przedszkole")
+form_step_2 <- as.formula(paste("malzenstwa_wskaznik ~", paste(variables_step_2, collapse = " + ")))
+model_fe_step_2 <- plm(form_step_2, data = panel_data, model = "within")
+summary(model_fe_step_2)
+final_form = form_step_2
+final_model = model_fe_step_2
+panel_data <- within(panel_data, rm(kwota_swiad_rodz))
+```
+
+Finalny model zawiera 5 zmiennych objaśniających:
+
+- **rozwody**
+- **urodzenia_zywe**
+- **wynagrodzenie**
+- **srednia_cena_mieszk**
+- **przedszkole**
+
+# Weryfikacja modelu
+Początkowo zbadana zostanie autokorelacja składnika losowego. W celu sprawdzenia, czy występuje przeprowadzony zostanie test Baltagi-Li
+
+***Hipotezy dla testu Baltagi-Li ***
+
+- **Hipoteza zerowa (H₀):**  
+  Brak dowodów na autokorelację.
+- **Hipoteza alternatywna (H₁):**  
+  Autokorelacja występuje.
+
+``` {r}
+pbg_test <- pbgtest(final_model)
+print(pbg_test)
+```
+
+Bardzo małe p-value wskazuje na występowanie autokorelacji czynnika losowego. Zostanie zastosowane przekształcenie Prais Winstein
+
+```{R}
+
+prais_transformation <- prais_winsten(final_form, data = panel_data, index = "rok", panelwise = TRUE)
+summary(prais_transformation)
+```
+
+
+
+Dzięki wykorzystaniu tego przekształcenia wartość statystyki Durbina-Watsona wynosi **2.392** zamiast pierwotnego **0.7873**. Autokorelacja wciąż występuje, jednak jej wpływ został znacznie zredukowany.
+
+Następnie zbadana zostanie normalność rozkładu reszt za pomocą testu Shapiro-Wilka.
+
+### Test Shapiro-Wilka
+
+***Hipotezy dla testu Shapiro-Wilka***
+
+- **Hipoteza zerowa (H₀):**  
+  Próba pochodzi z populacji o rozkładzie normalnym
+
+- **Hipoteza alternatywna (H₁):**  
+  Próba nie pochodzi z populacji o rozkładzie normalnym
+
+```{r}
+res <- residuals(final_model)
+shapiro.test(res)
+hist(res, breaks = 20, main = "Histogram reszt", xlab = "Reszty")
+```
+
+P-value wynoszące **0.002317** oznacza, że należy odrzucić hipotezę zerową - reszty nie pochodzą z rozkładu normalnego.
+
+# Ocena i interpretacja finalnego modelu
+```{r}
+summary(prais_transformation)
+```
+
+- **R-kwadrat**: model wyjaśnia niecałe 60% procent zmienności zmiennej zależnej.
+
+### Wpływ zmiennych objaśniających z wysoką istotnością
+
+- **rozwody** - wrost tej zmiennej o 1 oznacza spadek współczynnika małżeństw około 0.017. Ta zależność była spodziewana - każdy rozwód powoduje spadek ilości małżeństw o 1 w danym województwie.
+- **urodzenia_zywe** - wrost o 1 oznacza wzrost współczynnika małżeństw o około 0.02. Intuicyjnie można było spodziewać się dodatniej wartości współczynnika - narodziny dziecka są często bodźcem do wzięcia ślubu, szczególnie w przypadku krajów takich jak Polska, gdzie duża część społeczeństwa jest katolikami.
+- **wynagrodzenie** - wrozst o 1 oznacza wzrost współczynnika małżeństw o  -7.433e-05. 
+
+### Wpływ zmiennych objaśniających o niskiej istotności
+
+- **srednia_cena_mieszk** - wzrost średniej ceny mieszkania o 1 powoduje spadek wskaźnika małżeństw o -1.381e-07
+- **przedszkole** - wzrost liczby przedszkoli o 1 na 10tys mieszkańców powoduje spadek wskaźnika małżeństw o -7.286e-03
+
+
+
+
+
+
+
+
+
+
 
