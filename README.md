@@ -19,12 +19,12 @@ Dane pochodzą z Banku Danych Lokalnych GUS. Brak brakujących wartości.
 4. **Modele dwukierunkowe**: Dodano efekty czasowe.
 
 ### Wybór modelu
-- **Test Hausmana**: Wybrano model FE (p < 2.2e-16).
-- **Model końcowy**: Jednokierunkowy FE z transformacją Prais-Winsten (Durbin-Watson: 2.419).
+- **Test Hausmana**
+- **Model końcowy**
 
 ### Diagnostyka
-- **Autokorelacja**: Skorygowano metodą Prais-Winsten.
-- **Normalność**: Test Shapiro-Wilka wykazał nienormalność reszt (p = 0.0023).
+- **Autokorelacja**
+- **Normalność**
 
 ## Użycie
 ### Wymagania
